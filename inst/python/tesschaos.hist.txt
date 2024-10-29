@@ -1,0 +1,110 @@
+library(BiocOAI)
+ls(2)
+dir()
+x = read.csv("vigs1_emb_large.csv")
+names(x)
+y = extract_emb_matrix("vigs1_emb_large.csv", "embedding")
+dim(y)
+library(irlba)
+pp = prcomp_irlba(y, 10)
+pairs(pp$x[,1:5])
+dd = data.frame(pp$x, pk=x$pkgname)
+library(plotly)
+library(ggplot2)
+ggplot2(dd, aes(x=PC1, y=PC2, text=pk)) + geom_point() -> z1
+ggplot(dd, aes(x=PC1, y=PC2, text=pk)) + geom_point() -> z1
+ggplotly(z1)
+library(uwot)
+ls(2)
+?umap2
+?umap
+ls()
+dim(z1)
+dim(y)
+class(y)
+uu = umap2(y)
+dim(uu)
+plot(uu)
+head(uu)
+dd$um1 = uu[,1]
+dd$um2 = uu[,2]
+ggplot(dd, aes(x=um1, y=um2, text=pk)) + geom_point() -> z2
+ggplotly(z2)
+?umap
+uu = umap2(y, metric="cosine")
+dd$umc1 = uu[,1]
+dd$umc2 = uu[,2]
+ggplot(dd, aes(x=umc1, y=umc2, text=pk)) + geom_point() -> z3
+ggplotly(z3)
+savehistory(file="useUMAP.hist.txt")
+getwd()
+?kmeans
+kk = kmeans(y, 6)
+table(kk$cluster)
+ggplot(dd, aes(x=umc1, y=umc2, text=pk, colour=kk$cluster)) + geom_point() -> z3
+ggplotly(z3)
+ggplot(dd, aes(x=umc1, y=umc2, text=pk, colour=factor(kk$cluster))) + geom_point() -> z3
+ggplotly(z3)
+kk2 = kmeans(y, 5)
+ggplot(dd, aes(x=umc1, y=umc2, text=pk, colour=factor(kk2$cluster))) + geom_point() -> z4
+ggplotly(z4)
+?dist
+summary(as.numeric(y))
+library(MLInterfaces)
+savehistory(file="usekm.hist.txt")
+kk2
+names(kk2)
+kk2$centers
+umc2
+um2
+ls()
+uu
+class(uu)
+library(spatstat)
+args(tess)
+uut = tess(uu)
+W=owin(range(uu[,1]),range(uu[,2]))
+uut = tess(uu, W)
+uut = as.ppp(uu)
+uut = as.ppp(uu, W)
+uutt = tess(uut)
+uud = dirichlet(uut)
+uut = tess(uud)
+uud
+plot(uud)
+dev.off()
+plot(uud)
+savehistory(file="trytess.hist.txt")
+points(uu)
+ls()
+names(kk)
+length(kk$cluster)
+table(kk$cluster)
+table(kk2$cluster)
+kkppp = as.ppp(kk2$centers)
+range(as.numeric(kk2$centers))
+W=owin(c(-.1,.1),c(-.1,.1))
+kkppp = as.ppp(kk2$centers, W)
+kkt = tess(kkppp)
+kkdir = dirichlet(kkppp)
+kkt = tess(kkdir)
+kkdir
+plot(kkdir)
+points(uu)
+kkppp
+class(kkppp)
+kkpppt = tess(kkppp)
+kkpppdir = dirichlet(kkppp)
+kkpppdir
+class(kkpppdir)
+plot(kkpppdir)
+names(kk2)
+prc = prcomp_irlba(y, 10)
+points(prc$x[,1:2])
+apply(prc$x[,1:2],2,range)
+Wp=owin(c(-.5,.5),c(-.5,.5))
+kkppp = as.ppp(kk2$centers, Wp)
+kkpppdir = dirichlet(kkppp)
+plot(kkpppdir)
+points(prc$x[,1:2])
+savehistory(file="tesschaos.hist.txt")

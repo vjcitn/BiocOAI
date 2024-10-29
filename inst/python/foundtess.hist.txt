@@ -1,0 +1,19 @@
+source("dotess.R", echo=TRUE)
+dd[1:3,]
+dd[,1]
+dd[,2]
+source("dotess.R", echo=TRUE)
+source("dotess.R", echo=TRUE)
+?text
+source("dotess.R", echo=TRUE)
+W = owin(c(-2,2), c(-2,2))
+library(spatstat)
+W = owin(c(-2,2), c(-2,2))
+W
+args(as.ppp)
+uppp = as.ppp(uu, W)
+duppp = dirichlet(uppp)
+class(duppp)
+?plot.tess
+getwd()
+savehistory(file="foundtess.hist.txt")
