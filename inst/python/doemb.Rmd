@@ -1,0 +1,126 @@
+---
+title: Embedding filtered content from Bioconductor software package vignettes
+output:
+    rmarkdown::html_document
+---
+
+# Introduction
+
+We would like to understand whether the text-embedding
+resource of OpenAI can be used to group packages
+on the basis of semantic similarity of content in vignettes.
+
+# Crude embedding
+
+Given a textual file "shvigs.csv" that has
+one row per vignette, a field 'pkgname' telling
+the name of a package in which the vignette
+is found, and a field 'vigs'
+containing the content of vignette (truncated to 30000 characters),
+this python program produces a CSV file with the text-embedding-3-large
+embedding of the text.  The environment variable `OPENAI_API_TOKEN`
+must be set to a valid value.
+
+```
+import pandas as pd
+import tiktoken
+
+from utils.embeddings_utils import get_embedding
+
+embedding_model = "text-embedding-3-large"
+embedding_encoding = "cl100k_base" # check
+max_tokens = 8000
+
+input_datapath = "./shvigs.csv"
+
+df = pd.read_csv(input_datapath, index_col=0)
+
+df.head(2)
+
+encoding = tiktoken.get_encoding(embedding_encoding)
+
+df["n_tokens"] = df.vigs.apply(lambda x: len(encoding.encode(x)))
+print(df["n_tokens"])
+df.to_csv("lktok.csv")
+
+df["embedding"] = df.vigs.apply(lambda x: get_embedding(x, model=embedding_model))
+df.to_csv("shvigs1_emb_large.csv")
+```
+
+# Dimension reduction
+
+## PCA
+
+The `get_embedding` result is imported into R via `BiocOAI::extract_emb_matrix`,
+consisting of string manipulations and coercion to matrix.
+
+```{r lk1}
+library(BiocOAI)
+x = read.csv("shvigs1_emb_large.csv")
+dd = data.frame(x[,1:4])
+y = extract_emb_matrix("shvigs1_emb_large.csv", "embedding")
+dim(y)
+```
+
+An approximate PCA is produced from the embedding.
+
+```{r dopca}
+library(irlba)
+set.seed(1234)
+prc = prcomp_irlba(y, 10)
+pairs(prc$x[,1:4], pch=19, cex=.4)
+```
+
+In the PC3:PC2 plane, some clustering is apparent?
+
+```{r lk23, fig.height=6, fig.width=6}
+plot(prc$x[,2:3], pch=" ")
+text(prc$x[,2:3], labels=dd[,2], cex=.4)
+```
+
+## UMAP followed by k-means
+
+In this section we want to visualize the
+partitioning of the UMAP projection
+of the embedding produced by
+k-means (9 clusters).  Clustering after
+UMAP may be objectionable.
+
+```{r lkdr}
+library(spatstat)
+library(uwot)
+set.seed(1234)
+uu = umap2(y, metric="cosine")
+dd$umc1 = uu[,1]
+dd$umc2 = uu[,2]
+kk2 = kmeans(uu, 9)
+
+Wp=owin(c(-2.5,3),c(-2.5,2.8)) # based on ranges of the umap coordinates
+
+kkppp = as.ppp(kk2$centers, Wp)
+kkpppdir = dirichlet(kkppp)
+```
+
+The visualization of the tesselation involves customization of
+plot operations, which do not appear to respect figure
+size controls in knitr.
+
+We made a provisional short labeling of topics subjectively
+perceived to
+be present in tiles.
+
+```{r lktess9}
+thelabs = c("infra", "flow", "seq", "misc", "prot", "snps", "DE/infra", "TCGA", "seq2")
+dtitle = paste("Dirich. tess. of k-means (k=9) of\n",
+     sprintf("cosine-metric UMAP applied to embedding of \n%d vignettes from %d packages", 
+     nrow(dd), length(unique(dd[,2]))))
+plot(kkpppdir, main=dtitle, labels=thelabs, do.col=TRUE, alpha=.5, values=thelabs, do.labels=FALSE)
+text(uu, labels=dd[,2], cex=.5, col="lightblue")
+```
+
+The fact that DESeq2 is assigned to a tile distinct from
+limma and edgeR is unpleasant, but examining the HTML
+vignettes for the latter two packages shows there
+is very little content there -- the content is mostly
+in the PDF manuals.
+
