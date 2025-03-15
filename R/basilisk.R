@@ -16,7 +16,7 @@
 # necessary for python module control
 bsklenv <- basilisk::BasiliskEnvironment(envname="bsklenv",
     pkgname="BiocOAI",
-    packages=c("numpy=2.1.0", "python=3.12.5"), pip=c("pandas==2.2.2",
-      "openai==1.51.2", "scikit-learn==1.5.2", "plotly==5.24.1",
-      "matplotlib==3.9.2", "scipy==1.14.1", "tiktoken==0.8.0"))
+    packages=c("numpy=2.2.3", "python=3.12.5"), pip=c("pandas==2.2.3",
+      "openai==1.66.3", "scikit-learn==1.6.1", "plotly==6.0.0",
+      "matplotlib==3.10.1", "scipy==1.15.2", "tiktoken==0.9.0"))
 
