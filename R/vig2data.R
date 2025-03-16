@@ -3,6 +3,7 @@
 #' document, tailored to vignettes in bioconductor
 #' @import ellmer
 #' @param url character(1) URL for an html bioconductor vignettes
+#' @param maxnchar numeric(1) text is truncated to a substring with this length
 #' @return a list with components author, topics, focused, coherence, and persuasion
 #' @note Based on code from https://cran.r-project.org/web/packages/ellmer/vignettes/structured-data.html
 #' March 15 2025.  Requires that OPENAI_API_KEY is available in environment.
@@ -13,7 +14,8 @@
 #' str(tst)
 #' }
 #' @export
-vig2data = function(url ="https://bioconductor.org/packages/release/bioc/html/Voyager.html") {
+vig2data = function(url ="https://bioconductor.org/packages/release/bioc/html/Voyager.html",
+   maxnchar=30000) {
  html <- rvest::read_html(url)
  text <- rvest::html_text2(rvest::html_element(html, "body"))
 
@@ -30,6 +32,6 @@ vig2data = function(url ="https://bioconductor.org/packages/release/bioc/html/Vo
 )
 
  chat <- chat_openai()
- chat$extract_data(text, type = type_summary)
+ chat$extract_data(substr(text,1,maxnchar), type = type_summary)
 }
 

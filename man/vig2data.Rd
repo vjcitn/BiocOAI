@@ -6,11 +6,14 @@
 document, tailored to vignettes in bioconductor}
 \usage{
 vig2data(
-  url = "https://bioconductor.org/packages/release/bioc/html/Voyager.html"
+  url = "https://bioconductor.org/packages/release/bioc/html/Voyager.html",
+  maxnchar = 30000
 )
 }
 \arguments{
 \item{url}{character(1) URL for an html bioconductor vignettes}
+
+\item{maxnchar}{numeric(1) text is truncated to a substring with this length}
 }
 \value{
 a list with components author, topics, focused, coherence, and persuasion
